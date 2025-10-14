@@ -15,6 +15,7 @@ export function HeroSection() {
 
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
+      {/* Background */}
       <div className="absolute inset-0 bg-background">
         <Image
           src="/images/cosmic-background.png"
@@ -24,16 +25,18 @@ export function HeroSection() {
           priority
           quality={100}
         />
-        {/* Dark overlay for better text readability */}
+        {/* Dark overlay */}
         <div className="absolute inset-0 bg-background/30" />
       </div>
 
       {/* Content */}
       <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        <div className="space-y-4 sm:space-y-6 max-w-5xl mx-auto">
+        {/* 👇 Adjusted padding-top for balanced spacing */}
+        <div className="space-y-4 sm:space-y-6 max-w-5xl mx-auto pt-8 sm:pt-10 md:pt-12">
+          {/* Logo */}
           <div className="flex justify-center mb-2 sm:mb-4">
             <Image
-              src="/images/concierge-group-logo.jpg"
+              src="/concierge.png"
               alt="Concierge Group Maldives"
               width={200}
               height={60}
@@ -44,10 +47,12 @@ export function HeroSection() {
 
           <p className="text-sm sm:text-base md:text-lg text-gold uppercase tracking-widest font-light">Presents</p>
 
+          {/* Animated Logo */}
           <div className="scale-75 sm:scale-90 md:scale-100">
             <AnimatedLogo />
           </div>
 
+          {/* Title */}
           <h1
             className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-bold uppercase tracking-tight gradient-text px-2"
             style={{ fontFamily: "var(--font-anton)" }}
@@ -55,9 +60,11 @@ export function HeroSection() {
             Dream Beyond Borders
           </h1>
 
-          {/* Subtitle with neon glow */}
+          {/* Subtitle */}
           <div className="space-y-2 pt-2">
-            <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-muted-grey font-medium">7th November 2025</p>
+            <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-muted-grey font-medium">
+              7th November 2025
+            </p>
           </div>
 
           {/* CTA Buttons */}
@@ -70,6 +77,7 @@ export function HeroSection() {
                 Book Tickets
               </Button>
             </Link>
+
             <Link href="/details" className="w-full sm:w-auto">
               <Button
                 size="lg"
@@ -84,7 +92,9 @@ export function HeroSection() {
           {/* Ticket counter */}
           <div className="pt-8 sm:pt-12">
             <div className="inline-block bg-surface/80 backdrop-blur-sm border border-electric-purple rounded-lg px-4 sm:px-6 py-2 sm:py-3">
-              <p className="text-muted-grey text-xs sm:text-sm uppercase tracking-wider">Limited Tickets Available</p>
+              <p className="text-muted-grey text-xs sm:text-sm uppercase tracking-wider">
+                Limited Tickets Available
+              </p>
               <p className="text-2xl sm:text-3xl font-bold text-white mt-1">
                 <span className="text-neon-magenta">247</span> / 684
               </p>
