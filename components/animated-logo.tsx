@@ -9,27 +9,27 @@ export function AnimatedLogo() {
 
       {/* Letter 1 - zooms to far left */}
       <div className="absolute animate-slide-left-1 w-16 h-20 md:w-24 md:h-32 lg:w-32 lg:h-40">
-        <Image src="/images/logo-1.png" alt="2" fill className="object-contain" priority />
+        <Image src="/1.png" alt="2" fill className="object-contain" priority />
       </div>
 
       {/* Letter 2 - zooms to left */}
       <div className="absolute animate-slide-left-2 w-16 h-20 md:w-24 md:h-32 lg:w-32 lg:h-40">
-        <Image src="/images/logo-2.png" alt="0" fill className="object-contain" priority />
+        <Image src="/2.png" alt="0" fill className="object-contain" priority />
       </div>
 
       {/* Letter 3 - stays in center */}
       <div className="absolute animate-slide-right-1 w-16 h-20 md:w-24 md:h-32 lg:w-32 lg:h-40">
-        <Image src="/images/logo-3.png" alt="2" fill className="object-contain" priority />
+        <Image src="/3.png" alt="2" fill className="object-contain" priority />
       </div>
 
       {/* Letter 4 - zooms to right */}
       <div className="absolute animate-slide-right-2 w-16 h-20 md:w-24 md:h-32 lg:w-32 lg:h-40">
-        <Image src="/images/logo-4.png" alt="5" fill className="object-contain" priority />
+        <Image src="/4.png" alt="5" fill className="object-contain" priority />
       </div>
 
       {/* Letter 5 - zooms to far right */}
       <div className="absolute animate-slide-right-3 w-16 h-20 md:w-24 md:h-32 lg:w-32 lg:h-40">
-        <Image src="/images/logo-5.png" alt="" fill className="object-contain" priority />
+        <Image src="/5.png" alt="" fill className="object-contain" priority />
       </div>
     </div>
   )

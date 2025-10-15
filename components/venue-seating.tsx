@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import Image from "next/image"
 import { CheckCircle2, Accessibility } from "lucide-react"
 
 const VenueSeating = () => {
@@ -313,6 +314,41 @@ const VenueSeating = () => {
     <div className="min-h-screen bg-dark-navy p-4 sm:p-6 md:p-8">
       <div className="max-w-7xl mx-auto">
         <div className="bg-surface rounded-lg shadow-2xl p-4 sm:p-6 md:p-8 border border-electric-purple/30">
+
+          {/* >>> Place this right after Ticket Categories on your page <<< */}
+          <section className="mb-6 sm:mb-8">
+            <div className="rounded-2xl border border-cyan-400/30 bg-black/50 shadow-[0_0_40px_rgba(0,255,255,0.08)] backdrop-blur-sm overflow-hidden">
+              {/* Title bar */}
+              <div className="flex items-center justify-between gap-3 px-5 sm:px-6 py-3 border-b border-cyan-400/20 bg-black/40">
+                <h3 className="text-base sm:text-lg font-semibold tracking-wide text-white">
+                  Actual Seating Area
+                </h3>
+                <span className="text-xs sm:text-sm text-cyan-300/80">
+                  Reference photo of the venue section
+                </span>
+              </div>
+
+              {/* Image */}
+              <div className="relative w-full">
+                <div className="relative aspect-[16/9] w-full">
+                  <Image
+                    src="/seatings.jpeg"   
+                    alt="Actual seating area"
+                    fill
+                    className="object-contain"
+                    priority
+                  />
+                </div>
+              </div>
+
+              {/* Caption */}
+              <div className="px-5 sm:px-6 py-4 text-xs sm:text-sm text-white/70">
+                *Image for guidance; final seat mapping follows the interactive layout.
+              </div>
+            </div>
+          </section>
+
+          {/* Title */}
           <h1
             className="text-xl sm:text-2xl md:text-3xl font-bold text-center mb-2 text-white uppercase"
             style={{ fontFamily: "var(--font-anton)" }}
@@ -374,7 +410,7 @@ const VenueSeating = () => {
             </div>
           </div>
 
-          {/* Legend (with visible Black swatch) */}
+          {/* Legend */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4 mt-6 sm:mt-8 pt-4 sm:pt-6 border-t">
             <div className="flex items-center gap-2">
               <div className="w-5 h-5 sm:w-6 sm:h-6 bg-transparent border-2 border-[#11D369] rounded flex-shrink-0 shadow-[0_0_10px_rgba(17,211,105,0.6)]"></div>
@@ -401,7 +437,7 @@ const VenueSeating = () => {
             </div>
           </div>
 
-          {/* Booking Summary (seat + price) */}
+          {/* Booking Summary */}
           {selectedSeats.length > 0 && (
             <div className="mt-6 sm:mt-8 bg-surface border-2 border-electric-purple rounded-lg p-4 sm:p-6 shadow-lg shadow-electric-purple/20">
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -441,7 +477,7 @@ const VenueSeating = () => {
             </div>
           )}
 
-          {/* Unselect All button (always visible, disabled if none selected) */}
+          {/* Unselect All */}
           <div className="mt-4 flex justify-center">
             <button
               onClick={clearSelection}

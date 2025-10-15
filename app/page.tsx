@@ -10,6 +10,7 @@ export default function HomePage() {
     <main className="min-h-screen bg-background overflow-hidden">
       {/* Hero Section */}
       <HeroSection />
+    
 
       {/* Concert Info */}
       <ConcertInfo />
