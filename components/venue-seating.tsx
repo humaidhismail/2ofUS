@@ -10,90 +10,139 @@ type VenueSeatingProps = {
 
 // -------- Zone Colors --------
 const zoneColors: Record<string, { border: string; hover: string; selected: string; text: string }> = {
-  "VIP Zone": { border: "#FDC70C", hover: "rgba(253,199,12,0.8)", selected: "#FDC70C", text: "text-black" },
-  "Wheelchair Access": { border: "#11D369", hover: "rgba(17,211,105,0.8)", selected: "#11D369", text: "text-white" },
-  "Standard Zone": { border: "#E83033", hover: "rgba(232,48,51,0.8)", selected: "#E83033", text: "text-white" },
-  "Standard Zone (Mid)": { border: "#FF6B6B", hover: "rgba(255,107,107,0.8)", selected: "#FF6B6B", text: "text-white" },
-  "Lower Section": { border: "#9B59B6", hover: "rgba(155,89,182,0.8)", selected: "#9B59B6", text: "text-white" },
+  "VIP Zone": { border: "#FDC70C", hover: "rgba(253,199,12,0.8)", selected: "#FDC70C", text: "text-[#FDC70C]" },
+  "Wheelchair Access": { border: "#11D369", hover: "rgba(17,211,105,0.8)", selected: "#11D369", text: "text-[#11D369]" },
+  "Standard Zone": { border: "#E83033", hover: "rgba(232,48,51,0.8)", selected: "#E83033", text: "text-[#E83033]" },
+  "Standard Zone (Mid)": { border: "#FF6B6B", hover: "rgba(255,107,107,0.8)", selected: "#FF6B6B", text: "text-[#FF6B6B]" },
+  "Lower Section": { border: "#9B59B6", hover: "rgba(155,89,182,0.8)", selected: "#9B59B6", text: "text-[#9B59B6]" },
 }
 
 // -------- VenueSeating Component --------
 const VenueSeating = ({ seats }: VenueSeatingProps) => {
   const [selectedSeats, setSelectedSeats] = useState<SeatData[]>([])
-
   const handleBookNow = () => {
-  // Store selected seats in sessionStorage
-  const seatsData = selectedSeats.map(seat => ({
-    id: seat.id,
-    number: seat.number,
-    category: seat.category,
-    price: seat.price
-  }))
+    const seatsData = selectedSeats.map(seat => ({
+      id: seat.id,
+      seatRowNumber: seat.seatRowNumber,
+      number: seat.number,
+      category: seat.category,
+      price: seat.price
+    }))
 
+    sessionStorage.setItem("selectedSeats", JSON.stringify(seatsData))
 
-  sessionStorage.setItem("selectedSeats", JSON.stringify(seatsData))
-
-  // Navigate to checkout
-  window.location.href = "/checkout"
-}
-
-  const toggleSeat = (seat: SeatData) => {
-  setSelectedSeats((prev) => {
-    const exists = prev.find((s) => s.number === seat.number)
-    if (exists) return prev.filter((s) => s.number !== seat.number)
-    return [...prev, seat]
-  })
-}
-
-  const clearSelection = () => setSelectedSeats([])
-    const Seat = ({ row, seat }: { row: string; seat: SeatData }) => {
-    const seatNo = `${row}-${seat.number}`
-    const isSelected = selectedSeats.some((s) => s.id === seatNo)
-    const isUnavailable = seat.status === "unavailable"
-
-    const palette = zoneColors[seat.category] || zoneColors["Standard Zone"]
-
-    return (
-      <button
-        onClick={() => !isUnavailable && toggleSeat(seat)}
-        disabled={isUnavailable}
-        style={{
-          backgroundColor: isSelected ? palette.selected : "transparent",
-          borderColor: palette.border,
-        }}
-        className={`w-8 h-8 text-xs rounded border-2 transition-all font-semibold ${
-          isSelected
-            ? `scale-110 ring-2 shadow-lg ${palette.text}`
-            : isUnavailable
-              ? "bg-gray-500 cursor-not-allowed opacity-70"
-              : `hover:shadow-[0_0_15px_${palette.hover}] ${palette.text}`
-        }`}
-        title={`${row}${seat.number} - ${isUnavailable ? "Unavailable" : "MYR " + seat.price}`}
-      >
-        {seat.number}
-      </button>
-    )
+    // Navigate to checkout
+    window.location.href = "/checkout"
   }
 
+  const toggleSeat = (seat: SeatData) => {
+    setSelectedSeats((prev) => {
+      const exists = prev.find((s) => s.seatRowNumber === seat.seatRowNumber)
+      if (exists) return prev.filter((s) => s.seatRowNumber !== seat.seatRowNumber)
+      return [...prev, seat]
+    })
+  }
+
+  const clearSelection = () => setSelectedSeats([])
+
+const Seat = ({ row, seat }: { row: string; seat: SeatData }) => {
+  const isSelected = selectedSeats.some((s) => s.seatRowNumber === seat.seatRowNumber)
+
+  // Seat status flags
+  const isUnavailable = seat.status === "unavailable"
+  const isReserved = seat.status === "reserved"
+  const isBooked = seat.status === "booked"
+
+  const palette = zoneColors[seat.category] || zoneColors["Standard Zone"]
+
+  // Determine colors and styles based on status
+  let bgColor = "transparent"
+  let textColor = palette.text
+  let cursor = "cursor-pointer"
+  let ringClass = ""
+  let shadowClass = ""
+
+  if (isSelected) {
+    bgColor = palette.selected
+    textColor = "text-black"
+    ringClass = "ring-2 ring-offset-1 ring-black/20"
+    shadowClass = "shadow-lg"
+  } else if (isUnavailable) {
+    bgColor = "#00d8ff"
+    textColor = "text-black opacity-60"
+    cursor = "cursor-not-allowed"
+  } else if (isReserved) {
+    bgColor = "#FFD700" // gold/yellow
+    textColor = "text-black opacity-70"
+    cursor = "cursor-not-allowed"
+  } else if (isBooked) {
+    bgColor = "#FF3B3B" // red
+    textColor = "text-white opacity-80"
+    cursor = "cursor-not-allowed"
+  }
+
+  return (
+    <button
+      onClick={() => !isUnavailable && !isReserved && !isBooked && toggleSeat(seat)}
+      disabled={isUnavailable || isReserved || isBooked}
+      style={{
+        backgroundColor: bgColor,
+        borderColor: palette.border,
+      }}
+      className={`w-8 h-8 text-xs rounded border-2 font-semibold transition-all duration-300 ease-in-out
+        ${isSelected ? `scale-110 ${ringClass} ${shadowClass}` : ""}
+        ${
+          !isUnavailable && !isReserved && !isBooked
+            ? `hover:shadow-[0_0_15px_${palette.hover}]`
+            : ""
+        }
+        ${textColor} ${cursor}
+      `}
+      title={`${row}${seat.number} - ${
+        isUnavailable
+          ? "Unavailable"
+          : isReserved
+          ? "Reserved"
+          : isBooked
+          ? "Booked"
+          : "MYR " + seat.price
+      }`}
+    >
+      {seat.number}
+    </button>
+  )
+}
+
+
   const SeatRow = ({ row, seats }: { row: string; seats: SeatRowLayout }) => {
-    // Safely access arrays with fallback to empty arrays
     const leftSeats = seats?.left || []
     const centerSeats = seats?.center || []
     const rightSeats = seats?.right || []
 
     return (
-      <div className="mb-2">
-        <div className="flex items-center gap-4">
-          <div className="w-8 text-center font-semibold text-white text-sm">{row}</div>
-          <div className="flex gap-1 justify-start" style={{ width: "360px" }}>
+      <div className="mb-2 flex justify-center">
+        <div className="grid items-center gap-3" style={{ gridTemplateColumns: "32px 1fr 48px 1fr 48px 1fr" }}>
+          {/* Row Label */}
+          <div className="text-center font-semibold text-white text-sm">{row}</div>
+
+          {/* Left Section - Grid with 10 columns (max seats in left) */}
+          <div className="grid gap-1 justify-items-center" style={{ gridTemplateColumns: "repeat(10, 32px)" }}>
             {leftSeats.map((s) => <Seat key={`${row}-${s.number}`} row={row} seat={s} />)}
           </div>
-          <div className="w-12"></div>
-          <div className="flex gap-1 justify-start" style={{ width: "440px" }}>
+
+          {/* Aisle */}
+          <div></div>
+
+          {/* Center Section - Grid with 14 columns (max seats in center) */}
+          <div className="grid gap-1 justify-items-center" style={{ gridTemplateColumns: "repeat(14, 32px)" }}>
             {centerSeats.map((s) => <Seat key={`${row}-${s.number}`} row={row} seat={s} />)}
           </div>
-          <div className="w-12"></div>
-          <div className="flex gap-1 justify-start" style={{ width: "360px" }}>
+
+          {/* Aisle */}
+          <div></div>
+
+          {/* Right Section - Grid with 10 columns (max seats in right) */}
+          <div className="grid gap-1 justify-items-center" style={{ gridTemplateColumns: "repeat(10, 32px)" }}>
             {rightSeats.map((s) => <Seat key={`${row}-${s.number}`} row={row} seat={s} />)}
           </div>
         </div>
@@ -110,9 +159,11 @@ const VenueSeating = ({ seats }: VenueSeatingProps) => {
         <p className="text-center text-gray-400 mb-6 sm:mb-8 text-sm sm:text-base">Select your seats</p>
 
         <div className="overflow-x-auto pb-4">
-          {Object.entries(seats).map(([row, rowSeats]) => (
-            <SeatRow key={row} row={row} seats={rowSeats} />
-          ))}
+          <div className="min-w-max">
+            {Object.entries(seats).map(([row, rowSeats]) => (
+              <SeatRow key={row} row={row} seats={rowSeats} />
+            ))}
+          </div>
         </div>
 
         {/* Booking Summary */}
@@ -124,7 +175,7 @@ const VenueSeating = ({ seats }: VenueSeatingProps) => {
                 <div className="text-sm sm:text-base text-white break-words">
                   {selectedSeats.map((s, i) => (
                     <span key={s.id}>
-                      {s.number} <span className="text-gray-400">(MYR {s.price})</span>
+                      {s.seatRowNumber} <span className="text-gray-400">(MYR {s.price})</span>
                       {i < selectedSeats.length - 1 ? ", " : ""}
                     </span>
                   ))}

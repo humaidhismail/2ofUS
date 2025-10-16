@@ -15,7 +15,7 @@ interface Seat {
   price: number
 }
 
-export function TicketConfirmation() {
+export function TicketConfirmation({ paymentStatus }: { paymentStatus: Record<string, string> }) {
   const [selectedSeats, setSelectedSeats] = useState<Seat[]>([])
   const [orderData, setOrderData] = useState<any>(null)
   const [showAnimation, setShowAnimation] = useState(false)
@@ -72,7 +72,8 @@ export function TicketConfirmation() {
             className="text-5xl md:text-7xl font-bold uppercase mb-4 neon-text"
             style={{ fontFamily: "var(--font-anton)" }}
           >
-            Ticket Confirmed!
+            Ticket {paymentStatus.payment_status}!
+
           </h1>
           <p className="text-xl text-muted-grey">Your tickets have been successfully booked</p>
         </div>
