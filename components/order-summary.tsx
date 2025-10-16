@@ -1,3 +1,6 @@
+// ============================================
+// FILE: components/order-summary.tsx
+// ============================================
 "use client"
 
 import { useEffect, useState, useMemo } from "react"
@@ -6,9 +9,7 @@ import { Clock } from "lucide-react"
 
 interface Seat {
   id: string
-  row: string
-  number: number
-  zone: string
+  category: string
   price: number
 }
 
@@ -26,7 +27,7 @@ export function OrderSummary() {
         console.error("Failed to parse selected seats:", error)
       }
     }
-  }, []) // Empty dependency array - only run once
+  }, [])
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -65,16 +66,6 @@ export function OrderSummary() {
     return `${mins}:${secs.toString().padStart(2, "0")}`
   }, [timeLeft])
 
-  const getZoneDisplay = (zone: string) => {
-    const zoneMap: Record<string, string> = {
-      yellow: "Yellow VIP",
-      red: "Red Zone",
-      black: "Black Zone",
-      green: "Green Zone",
-    }
-    return zoneMap[zone] || zone
-  }
-
   return (
     <Card className="bg-surface border-electric-purple/30 p-4 sm:p-6 sticky top-24 space-y-4 sm:space-y-6">
       {/* Timer */}
@@ -111,7 +102,7 @@ export function OrderSummary() {
             <div key={seat.id} className="flex justify-between items-center text-xs sm:text-sm">
               <div>
                 <span className="text-white font-medium">Seat {seat.id}</span>
-                <span className="text-muted-grey ml-2">({getZoneDisplay(seat.zone)})</span>
+                <span className="text-muted-grey ml-2">({seat.category})</span>
               </div>
               <span className="text-white font-bold">MYR {seat.price}</span>
             </div>
@@ -123,10 +114,6 @@ export function OrderSummary() {
           <div className="flex justify-between text-muted-grey text-xs sm:text-sm">
             <span>Subtotal ({selectedSeats.length} tickets)</span>
             <span>MYR {subtotal}</span>
-          </div>
-          <div className="flex justify-between text-muted-grey text-xs sm:text-sm">
-            <span>Service Fee</span>
-            <span>MYR {serviceFee}</span>
           </div>
           <div className="flex justify-between text-white text-base sm:text-lg font-bold pt-2 border-t border-electric-purple/30">
             <span>Total</span>

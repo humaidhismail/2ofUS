@@ -2,33 +2,96 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
-import { CreditCard, Lock } from "lucide-react"
+import { Loader2 } from "lucide-react"
 import { useRouter } from "next/navigation"
+
+interface SelectedSeat {
+  id: string
+  seatId: string // The UUID from the database
+  category: string
+  price: number
+}
 
 export function CheckoutForm() {
   const router = useRouter()
+  const [selectedSeats, setSelectedSeats] = useState<SelectedSeat[]>([])
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const [formData, setFormData] = useState({
-    fullName: "",
-    email: "",
-    phone: "",
-    cardNumber: "",
-    expiryDate: "",
-    cvv: "",
+    customer_name: "",
+    customer_email: "",
+    customer_phone: "",
   })
 
-  const handleSubmit = (e: React.FormEvent) => {
+  useEffect(() => {
+    const storedSeats = sessionStorage.getItem("selectedSeats")
+    if (storedSeats) {
+      try {
+        const seats = JSON.parse(storedSeats)
+        setSelectedSeats(seats)
+
+        // If no seats selected, redirect back
+        if (!seats || seats.length === 0) {
+          router.push("/details")
+        }
+      } catch (error) {
+        console.error("Failed to parse selected seats:", error)
+        router.push("/details")
+      }
+    } else {
+      router.push("/details")
+    }
+  }, [router])
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setIsSubmitting(true)
+    setError(null)
 
-    // Store order data in sessionStorage
-    sessionStorage.setItem("orderData", JSON.stringify(formData))
+    try {
+      // Extract seat IDs (UUIDs) from selected seats
+      const seatIds = selectedSeats.map(seat => seat.id)
 
-    // Navigate to confirmation page
-    router.push("/confirmation")
+      const payload = {
+        customer_name: formData.customer_name,
+        customer_email: formData.customer_email,
+        customer_phone: formData.customer_phone,
+        seat_ids: seatIds,
+      }
+
+      const response = await fetch(`http://127.0.0.1:8000/api/create-order`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+        },
+        body: JSON.stringify(payload),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to create order")
+      }
+
+      console.log(data)
+      // Redirect to payment gateway
+      if (data.redirect_url) {
+        window.location.href = data.redirect_url
+      } else {
+        throw new Error("Payment redirect URL not received")
+      }
+
+    } catch (err: any) {
+      console.error("Order creation failed:", err)
+      setError(err.message || "Failed to process order. Please try again.")
+      setIsSubmitting(false)
+    }
   }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -40,6 +103,13 @@ export function CheckoutForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
+      {/* Error Message */}
+      {error && (
+        <Card className="bg-red-500/10 border-red-500/30 p-4">
+          <p className="text-red-400 text-sm">{error}</p>
+        </Card>
+      )}
+
       {/* Personal Information */}
       <Card className="bg-surface border-electric-purple/30 p-4 sm:p-6">
         <h2
@@ -51,135 +121,87 @@ export function CheckoutForm() {
 
         <div className="space-y-3 sm:space-y-4">
           <div>
-            <Label htmlFor="fullName" className="text-muted-grey mb-2 block">
+            <Label htmlFor="customer_name" className="text-muted-grey mb-2 block">
               Full Name
             </Label>
             <Input
-              id="fullName"
-              name="fullName"
+              id="customer_name"
+              name="customer_name"
               type="text"
               required
-              value={formData.fullName}
+              value={formData.customer_name}
               onChange={handleChange}
               className="bg-background border-electric-purple/30 text-white focus:border-neon-magenta"
               placeholder="John Doe"
+              disabled={isSubmitting}
             />
           </div>
 
           <div>
-            <Label htmlFor="email" className="text-muted-grey mb-2 block">
+            <Label htmlFor="customer_email" className="text-muted-grey mb-2 block">
               Email Address
             </Label>
             <Input
-              id="email"
-              name="email"
+              id="customer_email"
+              name="customer_email"
               type="email"
               required
-              value={formData.email}
+              value={formData.customer_email}
               onChange={handleChange}
               className="bg-background border-electric-purple/30 text-white focus:border-neon-magenta"
               placeholder="john@example.com"
+              disabled={isSubmitting}
             />
           </div>
 
           <div>
-            <Label htmlFor="phone" className="text-muted-grey mb-2 block">
+            <Label htmlFor="customer_phone" className="text-muted-grey mb-2 block">
               Phone Number
             </Label>
             <Input
-              id="phone"
-              name="phone"
+              id="customer_phone"
+              name="customer_phone"
               type="tel"
               required
-              value={formData.phone}
+              value={formData.customer_phone}
               onChange={handleChange}
               className="bg-background border-electric-purple/30 text-white focus:border-neon-magenta"
               placeholder="+60 12-345 6789"
+              disabled={isSubmitting}
             />
           </div>
         </div>
       </Card>
 
-      {/* Payment Information */}
+      {/* Payment Notice */}
       <Card className="bg-surface border-electric-purple/30 p-4 sm:p-6">
-        <div className="flex items-center gap-2 mb-4 sm:mb-6">
-          <CreditCard className="w-5 h-5 sm:w-6 sm:h-6 text-neon-magenta" />
+        <div className="space-y-3">
           <h2
             className="text-xl sm:text-2xl font-bold text-white uppercase gradient-text"
             style={{ fontFamily: "var(--font-anton)" }}
           >
-            Payment Details
+            Payment
           </h2>
-        </div>
-
-        <div className="space-y-3 sm:space-y-4">
-          <div>
-            <Label htmlFor="cardNumber" className="text-muted-grey mb-2 block">
-              Card Number
-            </Label>
-            <Input
-              id="cardNumber"
-              name="cardNumber"
-              type="text"
-              required
-              value={formData.cardNumber}
-              onChange={handleChange}
-              className="bg-background border-electric-purple/30 text-white focus:border-neon-magenta"
-              placeholder="1234 5678 9012 3456"
-              maxLength={19}
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-3 sm:gap-4">
-            <div>
-              <Label htmlFor="expiryDate" className="text-muted-grey mb-2 block">
-                Expiry Date
-              </Label>
-              <Input
-                id="expiryDate"
-                name="expiryDate"
-                type="text"
-                required
-                value={formData.expiryDate}
-                onChange={handleChange}
-                className="bg-background border-electric-purple/30 text-white focus:border-neon-magenta"
-                placeholder="MM/YY"
-                maxLength={5}
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="cvv" className="text-muted-grey mb-2 block">
-                CVV
-              </Label>
-              <Input
-                id="cvv"
-                name="cvv"
-                type="text"
-                required
-                value={formData.cvv}
-                onChange={handleChange}
-                className="bg-background border-electric-purple/30 text-white focus:border-neon-magenta"
-                placeholder="123"
-                maxLength={3}
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Security Notice */}
-        <div className="mt-4 sm:mt-6 flex items-center gap-2 text-muted-grey text-xs sm:text-sm">
-          <Lock className="w-3 h-3 sm:w-4 sm:h-4 text-electric-blue flex-shrink-0" />
-          <span>Your payment information is secure and encrypted</span>
+          <p className="text-muted-grey text-sm">
+            After clicking "Proceed to Payment", you will be redirected to our secure payment gateway to complete your purchase.
+          </p>
         </div>
       </Card>
 
       {/* Submit Button */}
       <Button
         type="submit"
-        className="w-full bg-neon-magenta hover:bg-hot-pink text-white font-bold py-5 sm:py-6 rounded-lg neon-glow transition-all duration-300 hover:scale-105 uppercase tracking-wide text-base sm:text-lg"
+        disabled={isSubmitting || selectedSeats.length === 0}
+        className="w-full bg-neon-magenta hover:bg-hot-pink text-white font-bold py-5 sm:py-6 rounded-lg neon-glow transition-all duration-300 hover:scale-105 uppercase tracking-wide text-base sm:text-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
       >
-        Complete Purchase
+        {isSubmitting ? (
+          <>
+            <Loader2 className="w-5 h-5 animate-spin mr-2" />
+            Processing...
+          </>
+        ) : (
+          "Proceed to Payment"
+        )}
       </Button>
     </form>
   )
