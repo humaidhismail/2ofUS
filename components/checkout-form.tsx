@@ -9,17 +9,13 @@ import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { Loader2 } from "lucide-react"
 import { useRouter } from "next/navigation"
+import { SeatData } from "@/types/seats"
 
-interface SelectedSeat {
-  id: string
-  seatId: string // The UUID from the database
-  category: string
-  price: number
-}
 
-export function CheckoutForm() {
+
+export function CheckoutForm({ seats }: { seats: SeatData[] }) {
   const router = useRouter()
-  const [selectedSeats, setSelectedSeats] = useState<SelectedSeat[]>([])
+
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [formData, setFormData] = useState({
@@ -28,25 +24,6 @@ export function CheckoutForm() {
     customer_phone: "",
   })
 
-  useEffect(() => {
-    const storedSeats = sessionStorage.getItem("selectedSeats")
-    if (storedSeats) {
-      try {
-        const seats = JSON.parse(storedSeats)
-        setSelectedSeats(seats)
-
-        // If no seats selected, redirect back
-        if (!seats || seats.length === 0) {
-          router.push("/details")
-        }
-      } catch (error) {
-        console.error("Failed to parse selected seats:", error)
-        router.push("/details")
-      }
-    } else {
-      router.push("/details")
-    }
-  }, [router])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -54,8 +31,8 @@ export function CheckoutForm() {
     setError(null)
 
     try {
-      // Extract seat IDs (UUIDs) from selected seats
-      const seatIds = selectedSeats.map(seat => seat.id)
+
+      const seatIds = seats.map(seat => seat.id)
 
       const payload = {
         customer_name: formData.customer_name,
@@ -78,9 +55,6 @@ export function CheckoutForm() {
       if (!response.ok) {
         throw new Error(data.message || "Failed to create order")
       }
-
-      console.log(data)
-      // Redirect to payment gateway
       if (data.redirect_url) {
         window.location.href = data.redirect_url
       } else {
@@ -191,7 +165,7 @@ export function CheckoutForm() {
       {/* Submit Button */}
       <Button
         type="submit"
-        disabled={isSubmitting || selectedSeats.length === 0}
+        disabled={isSubmitting || seats.length === 0}
         className="w-full bg-neon-magenta hover:bg-hot-pink text-white font-bold py-5 sm:py-6 rounded-lg neon-glow transition-all duration-300 hover:scale-105 uppercase tracking-wide text-base sm:text-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
       >
         {isSubmitting ? (

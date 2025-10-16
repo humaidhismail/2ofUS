@@ -1,40 +1,22 @@
-// ============================================
-// FILE: components/order-summary.tsx
-// ============================================
 "use client"
 
 import { useEffect, useState, useMemo } from "react"
 import { Card } from "@/components/ui/card"
 import { Clock } from "lucide-react"
+import { SeatData } from "@/types/seats"
+import { useRouter } from "next/navigation"
 
-interface Seat {
-  id: string
-  category: string
-  price: number
-}
+export function OrderSummary({ seats }: { seats: SeatData[] }) {
+    const router = useRouter()
+    const [timeLeft, setTimeLeft] = useState(600)
 
-export function OrderSummary() {
-  const [selectedSeats, setSelectedSeats] = useState<Seat[]>([])
-  const [timeLeft, setTimeLeft] = useState(600) // 10 minutes in seconds
-
-  useEffect(() => {
-    const storedSeats = sessionStorage.getItem("selectedSeats")
-    if (storedSeats) {
-      try {
-        const seats = JSON.parse(storedSeats)
-        setSelectedSeats(seats)
-      } catch (error) {
-        console.error("Failed to parse selected seats:", error)
-      }
-    }
-  }, [])
 
   useEffect(() => {
     const timer = setInterval(() => {
       setTimeLeft((prev) => {
         if (prev <= 1) {
           clearInterval(timer)
-          window.location.href = "/details"
+          router.push('/details')
           return 0
         }
         return prev - 1
@@ -44,17 +26,9 @@ export function OrderSummary() {
     return () => clearInterval(timer)
   }, [])
 
-  const subtotal = useMemo(() => {
-    return selectedSeats.reduce((sum, seat) => sum + seat.price, 0)
-  }, [selectedSeats])
-
-  const serviceFee = useMemo(() => {
-    return selectedSeats.length * 5
-  }, [selectedSeats.length])
-
   const total = useMemo(() => {
-    return subtotal + serviceFee
-  }, [subtotal, serviceFee])
+    return seats.reduce((sum, seat) => sum + seat.price, 0)
+  }, [seats])
 
   const progressPercentage = useMemo(() => {
     return (timeLeft / 600) * 100
@@ -98,10 +72,10 @@ export function OrderSummary() {
         </h3>
 
         <div className="space-y-2 sm:space-y-3 mb-4 max-h-48 overflow-y-auto">
-          {selectedSeats.map((seat) => (
+          {seats.map((seat) => (
             <div key={seat.id} className="flex justify-between items-center text-xs sm:text-sm">
               <div>
-                <span className="text-white font-medium">Seat {seat.id}</span>
+                <span className="text-white font-medium">Seat {seat.seatRowNumber}</span>
                 <span className="text-muted-grey ml-2">({seat.category})</span>
               </div>
               <span className="text-white font-bold">MYR {seat.price}</span>
@@ -110,11 +84,7 @@ export function OrderSummary() {
         </div>
 
         {/* Pricing Breakdown */}
-        <div className="border-t border-electric-purple/30 pt-4 space-y-2">
-          <div className="flex justify-between text-muted-grey text-xs sm:text-sm">
-            <span>Subtotal ({selectedSeats.length} tickets)</span>
-            <span>MYR {subtotal}</span>
-          </div>
+        <div className="space-y-2">
           <div className="flex justify-between text-white text-base sm:text-lg font-bold pt-2 border-t border-electric-purple/30">
             <span>Total</span>
             <span className="text-neon-magenta">MYR {total}</span>

@@ -1,8 +1,9 @@
 "use client"
 
 import { useState } from "react"
-import { CheckCircle2, Accessibility } from "lucide-react"
+import { CheckCircle2 } from "lucide-react"
 import { SeatRowLayout, SeatData } from "@/types/seats"
+import { useRouter } from "next/navigation"
 
 type VenueSeatingProps = {
   seats: Record<string, SeatRowLayout>
@@ -19,102 +20,102 @@ const zoneColors: Record<string, { border: string; hover: string; selected: stri
 
 // -------- VenueSeating Component --------
 const VenueSeating = ({ seats }: VenueSeatingProps) => {
-  const [selectedSeats, setSelectedSeats] = useState<SeatData[]>([])
-  const handleBookNow = () => {
-    const seatsData = selectedSeats.map(seat => ({
-      id: seat.id,
-      seatRowNumber: seat.seatRowNumber,
-      number: seat.number,
-      category: seat.category,
-      price: seat.price
-    }))
+    const router = useRouter()
+    const [selectedSeats, setSelectedSeats] = useState<SeatData[]>([])
 
-    sessionStorage.setItem("selectedSeats", JSON.stringify(seatsData))
+    const handleBookNow = () => {
+        const seatsData = selectedSeats.map(seat => ({
+        id: seat.id,
+        seatRowNumber: seat.seatRowNumber,
+        number: seat.number,
+        category: seat.category,
+        price: seat.price
+        }))
 
-    // Navigate to checkout
-    window.location.href = "/checkout"
-  }
+        const query = encodeURIComponent(JSON.stringify(seatsData))
+        router.push(`/checkout?seats=${query}`)
+    }
 
-  const toggleSeat = (seat: SeatData) => {
+    const toggleSeat = (seat: SeatData) => {
     setSelectedSeats((prev) => {
-      const exists = prev.find((s) => s.seatRowNumber === seat.seatRowNumber)
-      if (exists) return prev.filter((s) => s.seatRowNumber !== seat.seatRowNumber)
-      return [...prev, seat]
+        const exists = prev.find((s) => s.seatRowNumber === seat.seatRowNumber)
+        if (exists) return prev.filter((s) => s.seatRowNumber !== seat.seatRowNumber)
+        return [...prev, seat]
     })
-  }
+    }
 
-  const clearSelection = () => setSelectedSeats([])
+    const clearSelection = () => setSelectedSeats([])
 
-const Seat = ({ row, seat }: { row: string; seat: SeatData }) => {
-  const isSelected = selectedSeats.some((s) => s.seatRowNumber === seat.seatRowNumber)
+    const Seat = ({ row, seat }: { row: string; seat: SeatData }) => {
+    const isSelected = selectedSeats.some((s) => s.seatRowNumber === seat.seatRowNumber)
 
-  // Seat status flags
-  const isUnavailable = seat.status === "unavailable"
-  const isReserved = seat.status === "reserved"
-  const isBooked = seat.status === "booked"
+    // Seat status flags
+    const isUnavailable = seat.status === "unavailable"
+    const isReserved = seat.status === "reserved"
+    const isBooked = seat.status === "booked"
 
-  const palette = zoneColors[seat.category] || zoneColors["Standard Zone"]
+    const palette = zoneColors[seat.category] || zoneColors["Standard Zone"]
 
-  // Determine colors and styles based on status
-  let bgColor = "transparent"
-  let textColor = palette.text
-  let cursor = "cursor-pointer"
-  let ringClass = ""
-  let shadowClass = ""
+    // Determine colors and styles based on status
+    let bgColor = "transparent"
+    let textColor = palette.text
+    let cursor = "cursor-pointer"
+    let ringClass = ""
+    let shadowClass = ""
 
-  if (isSelected) {
-    bgColor = palette.selected
-    textColor = "text-black"
-    ringClass = "ring-2 ring-offset-1 ring-black/20"
-    shadowClass = "shadow-lg"
-  } else if (isUnavailable) {
-    bgColor = "#00d8ff"
-    textColor = "text-black opacity-60"
-    cursor = "cursor-not-allowed"
-  } else if (isReserved) {
-    bgColor = "#FFD700" // gold/yellow
-    textColor = "text-black opacity-70"
-    cursor = "cursor-not-allowed"
-  } else if (isBooked) {
-    bgColor = "#FF3B3B" // red
-    textColor = "text-white opacity-80"
-    cursor = "cursor-not-allowed"
-  }
+    if (isSelected) {
+        bgColor = palette.selected
+        textColor = "text-black"
+        ringClass = "ring-2 ring-offset-1 ring-black/20"
+        shadowClass = "shadow-lg"
+    } else if (isUnavailable) {
+        bgColor = "#00d8ff"
+        textColor = "text-black opacity-60"
+        cursor = "cursor-not-allowed"
+    } else if (isReserved) {
+        bgColor = "#FFD700" // gold/yellow
+        textColor = "text-black opacity-70"
+        cursor = "cursor-not-allowed"
+    } else if (isBooked) {
+        bgColor = "#FF3B3B" // red
+        textColor = "text-white opacity-80"
+        cursor = "cursor-not-allowed"
+    }
 
-  return (
-    <button
-      onClick={() => !isUnavailable && !isReserved && !isBooked && toggleSeat(seat)}
-      disabled={isUnavailable || isReserved || isBooked}
-      style={{
-        backgroundColor: bgColor,
-        borderColor: palette.border,
-      }}
-      className={`w-8 h-8 text-xs rounded border-2 font-semibold transition-all duration-300 ease-in-out
-        ${isSelected ? `scale-110 ${ringClass} ${shadowClass}` : ""}
-        ${
-          !isUnavailable && !isReserved && !isBooked
-            ? `hover:shadow-[0_0_15px_${palette.hover}]`
-            : ""
-        }
-        ${textColor} ${cursor}
-      `}
-      title={`${row}${seat.number} - ${
-        isUnavailable
-          ? "Unavailable"
-          : isReserved
-          ? "Reserved"
-          : isBooked
-          ? "Booked"
-          : "MYR " + seat.price
-      }`}
-    >
-      {seat.number}
-    </button>
-  )
-}
+    return (
+        <button
+        onClick={() => !isUnavailable && !isReserved && !isBooked && toggleSeat(seat)}
+        disabled={isUnavailable || isReserved || isBooked}
+        style={{
+            backgroundColor: bgColor,
+            borderColor: palette.border,
+        }}
+        className={`w-8 h-8 text-xs rounded border-2 font-semibold transition-all duration-300 ease-in-out
+            ${isSelected ? `scale-110 ${ringClass} ${shadowClass}` : ""}
+            ${
+            !isUnavailable && !isReserved && !isBooked
+                ? `hover:shadow-[0_0_15px_${palette.hover}]`
+                : ""
+            }
+            ${textColor} ${cursor}
+        `}
+        title={`${row}${seat.number} - ${
+            isUnavailable
+            ? "Unavailable"
+            : isReserved
+            ? "Reserved"
+            : isBooked
+            ? "Booked"
+            : "MYR " + seat.price
+        }`}
+        >
+        {seat.number}
+        </button>
+    )
+    }
 
 
-  const SeatRow = ({ row, seats }: { row: string; seats: SeatRowLayout }) => {
+    const SeatRow = ({ row, seats }: { row: string; seats: SeatRowLayout }) => {
     const leftSeats = seats?.left || []
     const centerSeats = seats?.center || []
     const rightSeats = seats?.right || []
