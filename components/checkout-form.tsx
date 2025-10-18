@@ -9,19 +9,16 @@ import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { Loader2 } from "lucide-react"
 import { SeatData } from "@/types/seats"
+import { createOrder } from "@/lib/payment"
 
 export function CheckoutForm({ seats }: { seats: SeatData[] }) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [accepted, setAccepted] = useState(false)
-  const [formData, setFormData] = useState({
-    customer_name: "",
-    customer_email: "",
-    customer_phone: "",
-  })
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
+
     if (!accepted) {
       setError("Please agree to the terms before proceeding.")
       return
@@ -31,47 +28,19 @@ export function CheckoutForm({ seats }: { seats: SeatData[] }) {
     setError(null)
 
     try {
-      const seatIds = seats.map((seat) => seat.id)
+      const formData = new FormData(e.currentTarget)
+      const result = await createOrder(formData, seats)
 
-      const payload = {
-        customer_name: formData.customer_name,
-        customer_email: formData.customer_email,
-        customer_phone: formData.customer_phone,
-        seat_ids: seatIds,
+      if (!result.success || !result.url) {
+        throw new Error("Failed to create order")
       }
 
-      const response = await fetch(`http://127.0.0.1:8000/api/create-order`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-        body: JSON.stringify(payload),
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.message || "Failed to create order")
-      }
-
-      if (data.redirect_url) {
-        window.location.href = data.redirect_url
-      } else {
-        throw new Error("Payment redirect URL not received")
-      }
+      window.location.href = result.url
     } catch (err: any) {
       console.error("Order creation failed:", err)
       setError(err.message || "Failed to process order. Please try again.")
       setIsSubmitting(false)
     }
-  }
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    })
   }
 
   return (
@@ -102,8 +71,6 @@ export function CheckoutForm({ seats }: { seats: SeatData[] }) {
               name="customer_name"
               type="text"
               required
-              value={formData.customer_name}
-              onChange={handleChange}
               className="bg-background border-electric-purple/30 text-white focus:border-neon-magenta"
               placeholder="John Doe"
               disabled={isSubmitting}
@@ -119,8 +86,6 @@ export function CheckoutForm({ seats }: { seats: SeatData[] }) {
               name="customer_email"
               type="email"
               required
-              value={formData.customer_email}
-              onChange={handleChange}
               className="bg-background border-electric-purple/30 text-white focus:border-neon-magenta"
               placeholder="john@example.com"
               disabled={isSubmitting}
@@ -136,8 +101,6 @@ export function CheckoutForm({ seats }: { seats: SeatData[] }) {
               name="customer_phone"
               type="tel"
               required
-              value={formData.customer_phone}
-              onChange={handleChange}
               className="bg-background border-electric-purple/30 text-white focus:border-neon-magenta"
               placeholder="+60 12-345 6789"
               disabled={isSubmitting}
@@ -156,7 +119,7 @@ export function CheckoutForm({ seats }: { seats: SeatData[] }) {
             Payment
           </h2>
           <p className="text-muted-grey text-sm">
-            After clicking <strong>“Proceed to Payment”</strong>, you will be redirected to our secure payment gateway to
+            After clicking <strong>"Proceed to Payment"</strong>, you will be redirected to our secure payment gateway to
             complete your purchase.
           </p>
 
