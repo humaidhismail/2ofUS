@@ -28,7 +28,7 @@ export function PerformersSection() {
       </div>
 
       <div className="relative">
-        {/* Header (tighter spacing) */}
+        {/* Header */}
         <div className="text-center mb-6 sm:mb-8 md:mb-10">
           <h2 className="font-heading text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-3 sm:mb-4">
             <span
@@ -51,24 +51,17 @@ export function PerformersSection() {
                 key={`${performer.name}-${index}`}
                 className="group relative rounded-2xl overflow-hidden border-2 border-border/50 hover:border-magenta-500 transition-all duration-500 hover:scale-105 flex-shrink-0 w-[200px] sm:w-[240px] md:w-[280px]"
               >
-                {/* glow on hover */}
-                <div className="absolute inset-0 bg-gradient-to-br from-magenta-500/0 via-cyan-500/0 to-gold-500/0 group-hover:from-magenta-500/30 group-hover:via-cyan-500/30 group-hover:to-gold-500/30 transition-all duration-500 blur-xl z-10 pointer-events-none" />
+                {/* subtle neon glow on hover */}
+                <div className="absolute inset-0 bg-gradient-to-br from-magenta-500/0 via-cyan-500/0 to-gold-500/0 group-hover:from-magenta-500/20 group-hover:via-cyan-500/20 group-hover:to-gold-500/20 transition-all duration-500 blur-xl z-10 pointer-events-none" />
 
-                {/* Portrait */}
+                {/* Portrait ONLY (no title, no gradient overlay) */}
                 <div className="relative aspect-[3/4]">
                   <img
                     src={performer.image || "/placeholder.svg"}
                     alt={performer.name}
                     className="w-full h-full object-cover"
+                    loading="lazy"
                   />
-                  {/* bottom gradient for legibility */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-transparent opacity-80" />
-
-                  <div className="absolute bottom-0 left-0 right-0 p-3 sm:p-4 z-20">
-                    <h3 className="font-heading text-lg sm:text-xl md:text-2xl font-bold text-foreground group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:from-magenta-400 group-hover:to-cyan-400 group-hover:bg-clip-text transition-all duration-300">
-                      {performer.name}
-                    </h3>
-                  </div>
                 </div>
               </div>
             ))}

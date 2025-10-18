@@ -2,37 +2,36 @@
 
 import type React from "react"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { Loader2 } from "lucide-react"
-import { useRouter } from "next/navigation"
 import { SeatData } from "@/types/seats"
 
-
-
 export function CheckoutForm({ seats }: { seats: SeatData[] }) {
-  const router = useRouter()
-
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [accepted, setAccepted] = useState(false)
   const [formData, setFormData] = useState({
     customer_name: "",
     customer_email: "",
     customer_phone: "",
   })
 
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!accepted) {
+      setError("Please agree to the terms before proceeding.")
+      return
+    }
+
     setIsSubmitting(true)
     setError(null)
 
     try {
-
-      const seatIds = seats.map(seat => seat.id)
+      const seatIds = seats.map((seat) => seat.id)
 
       const payload = {
         customer_name: formData.customer_name,
@@ -45,7 +44,7 @@ export function CheckoutForm({ seats }: { seats: SeatData[] }) {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Accept": "application/json",
+          Accept: "application/json",
         },
         body: JSON.stringify(payload),
       })
@@ -55,12 +54,12 @@ export function CheckoutForm({ seats }: { seats: SeatData[] }) {
       if (!response.ok) {
         throw new Error(data.message || "Failed to create order")
       }
+
       if (data.redirect_url) {
         window.location.href = data.redirect_url
       } else {
         throw new Error("Payment redirect URL not received")
       }
-
     } catch (err: any) {
       console.error("Order creation failed:", err)
       setError(err.message || "Failed to process order. Please try again.")
@@ -147,7 +146,7 @@ export function CheckoutForm({ seats }: { seats: SeatData[] }) {
         </div>
       </Card>
 
-      {/* Payment Notice */}
+      {/* Payment Notice + Consent */}
       <Card className="bg-surface border-electric-purple/30 p-4 sm:p-6">
         <div className="space-y-3">
           <h2
@@ -157,15 +156,31 @@ export function CheckoutForm({ seats }: { seats: SeatData[] }) {
             Payment
           </h2>
           <p className="text-muted-grey text-sm">
-            After clicking "Proceed to Payment", you will be redirected to our secure payment gateway to complete your purchase.
+            After clicking <strong>“Proceed to Payment”</strong>, you will be redirected to our secure payment gateway to
+            complete your purchase.
           </p>
+
+          {/* ✅ Consent checkbox */}
+          <label className="mt-2 flex items-start gap-2 text-xs sm:text-sm text-white/90">
+            <input
+              type="checkbox"
+              className="mt-0.5"
+              checked={accepted}
+              onChange={(e) => setAccepted(e.currentTarget.checked)}
+              required
+            />
+            <span>
+              I have read and accept the <strong>Terms</strong>, <strong>Privacy Policy</strong> and{" "}
+              <strong>Refund Policy</strong>, and I understand this purchase is <strong>non-refundable</strong>.
+            </span>
+          </label>
         </div>
       </Card>
 
       {/* Submit Button */}
       <Button
         type="submit"
-        disabled={isSubmitting || seats.length === 0}
+        disabled={isSubmitting || seats.length === 0 || !accepted}
         className="w-full bg-neon-magenta hover:bg-hot-pink text-white font-bold py-5 sm:py-6 rounded-lg neon-glow transition-all duration-300 hover:scale-105 uppercase tracking-wide text-base sm:text-lg disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
       >
         {isSubmitting ? (
