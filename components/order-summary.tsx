@@ -36,10 +36,14 @@ export function OrderSummary({ seats }: { seats: SeatData[] }) {
     return () => clearInterval(timer)
   }, [router])
 
-  const totalMYR = useMemo(
-    () => seats.reduce((sum, seat) => sum + seat.price, 0),
-    [seats]
-  )
+const totalMYR = useMemo(
+  () =>
+    seats.reduce(
+      (sum, seat) => sum + Number(seat.price || 0),
+      0
+    ),
+  [seats]
+);
 
   const totalMVR = useMemo(
     () => Math.round(totalMYR * MYR_TO_MVR * 100) / 100,
@@ -116,7 +120,7 @@ export function OrderSummary({ seats }: { seats: SeatData[] }) {
           <div className="space-y-2">
             <div className="flex justify-between text-white text-base sm:text-lg font-bold pt-2 border-t border-electric-purple/30">
               <span>Total</span>
-              <span className="text-neon-magenta">MYR {totalMYR.toFixed(2)}</span>
+              <span className="text-neon-magenta">MYR {Number.isFinite(totalMYR) ? totalMYR.toFixed(2) : "0.00"}</span>
             </div>
 
             {/* MVR conversion + charge note */}
