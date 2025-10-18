@@ -35,38 +35,38 @@ export function TicketCategories() {
   return (
     <div>
       <h2
-        className="text-3xl md:text-4xl font-bold text-center mb-8 uppercase text-white"
+        className="text-3xl md:text-4xl font-bold text-center mb-6 uppercase text-white"
         style={{ fontFamily: "var(--font-anton)" }}
       >
         Ticket Categories
       </h2>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 max-w-4xl mx-auto">
         {categories.map((category, index) => (
           <Card
             key={index}
-            className="bg-surface border border-white/10 p-4 hover:border-white/30 transition-all duration-300"
+            className="bg-surface border border-white/10 p-3 sm:p-4 transition-all duration-300 hover:border-white/30 h-full"
           >
-            <div className="space-y-3">
-              {/* Color indicator */}
+            <div className="h-full flex flex-col">
+              {/* Top: Color + Name */}
               <div className="flex items-center gap-3">
                 <div
-                  className="w-8 h-8 rounded border-2 flex items-center justify-center transition-all duration-300"
+                  className="w-7 h-7 rounded border-2 flex items-center justify-center shrink-0"
                   style={{
                     backgroundColor: category.color,
                     borderColor:
                       category.color === "#000000"
-                        ? "#ffffff80" // white border for black seats
+                        ? "#ffffff80"
                         : category.color,
                     boxShadow:
                       category.color === "#000000"
-                        ? "0 0 10px rgba(255,255,255,0.25)"
-                        : `0 0 10px ${category.color}55`,
+                        ? "0 0 8px rgba(255,255,255,0.22)"
+                        : `0 0 8px ${category.color}55`,
                   }}
                 >
                   {category.icon && (
                     <Accessibility
-                      className="w-5 h-5"
+                      className="w-4 h-4"
                       style={{
                         color:
                           category.color === "#000000"
@@ -77,19 +77,23 @@ export function TicketCategories() {
                   )}
                 </div>
 
-                <div className="flex-1">
-                  <h3 className="text-sm font-bold text-white uppercase leading-tight">
-                    {category.name}
-                  </h3>
-                </div>
+                <h3 className="text-[13px] sm:text-sm font-bold text-white uppercase leading-tight">
+                  {category.name}
+                </h3>
               </div>
 
-              {/* Price */}
-              <div className="text-center pt-2 border-t border-white/10">
-                <div className="text-xs text-muted-grey mb-1">
+              {/* Body: description + divider + price (aligned baseline) */}
+              <div className="mt-3 sm:mt-4 border-t border-white/10 pt-2 sm:pt-3">
+                {/* Equal height description so prices align */}
+                <div className="text-[11px] sm:text-xs text-muted-grey min-h-[2.75rem] sm:min-h-[2.5rem]">
                   {category.description}
                 </div>
-                <div className="text-lg font-bold text-white">
+
+                {/* Divider between caption and price */}
+                <div className="my-2 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+
+                {/* Price */}
+                <div className="text-base sm:text-lg font-bold text-white tracking-tight text-center">
                   {typeof category.price === "number"
                     ? `MYR ${category.price}`
                     : `MYR ${category.price}`}
