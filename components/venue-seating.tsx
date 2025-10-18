@@ -151,7 +151,7 @@ const VenueSeating = ({ seats }: VenueSeatingProps) => {
     )
   }
 
-  const totalPrice = selectedSeats.reduce((sum, s) => sum + s.price, 0)
+  const totalPrice = selectedSeats.reduce((sum, s) => sum + Number(s.price || 0), 0);
 
   return (
     <div className="min-h-screen bg-gray-900 p-4 sm:p-6 md:p-8">
@@ -182,7 +182,7 @@ const VenueSeating = ({ seats }: VenueSeatingProps) => {
                   ))}
                 </div>
                 <p className="text-xs sm:text-sm text-gray-400 mt-1">Total: {selectedSeats.length} seat(s)</p>
-                <p className="text-lg sm:text-xl font-bold text-cyan-400 mt-2">MYR {console.log(totalPrice, isNaN(totalPrice))}</p>
+                <p className="text-lg sm:text-xl font-bold text-cyan-400 mt-2">MYR {Number.isFinite(totalPrice) ? totalPrice.toFixed(2) : "0.00"}</p>
               </div>
               <button onClick={handleBookNow} className="w-full sm:w-auto bg-gradient-to-r from-purple-600 to-pink-600 hover:from-pink-600 hover:to-purple-600 text-white px-6 sm:px-8 py-2.5 sm:py-3 rounded-lg font-semibold transition-all shadow-lg shadow-purple-500/50 hover:shadow-pink-500/50 flex items-center justify-center gap-2 uppercase text-sm sm:text-base">
                 <CheckCircle2 size={18} /> Book Now
