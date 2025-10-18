@@ -5,7 +5,7 @@ const API_URL = process.env.API_URL!;
 export async function getSeats()
 {
    try {
-        const response = await fetch(`${API_URL}/seats`, {
+        const response = await fetch(`${API_URL}/api/seats`, {
             method: "GET",
         });
 

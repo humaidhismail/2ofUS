@@ -73,10 +73,9 @@ export default async function ConfirmationPage({
 
   const verification = await verifyPayment(transactionId)
 
-  // ✅ Return the conditional JSX
   return verification.data.payment_status === "CONFIRMED" ? (
     <main className="min-h-screen bg-background">
-      <TicketConfirmation paymentStatus={verification.data} />
+      <TicketConfirmation data={verification.data.payment_status} order={verification.data.order} />
     </main>
   ) : (
     <main className="min-h-screen bg-background">

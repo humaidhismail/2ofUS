@@ -6,52 +6,53 @@ import { Button } from "@/components/ui/button"
 import { CheckCircle2, Download, Mail, Calendar, MapPin, Clock } from "lucide-react"
 import Link from "next/link"
 import { QRCodeSVG } from "qrcode.react"
+import { Order } from "@/types/order"
+import { downloadTicket } from "@/lib/ticket"
 
-interface Seat {
-  id: string
-  row: string
-  number: number
-  zone: string
-  price: number
-}
-
-export function TicketConfirmation({ paymentStatus }: { paymentStatus: Record<string, string> }) {
-  const [selectedSeats, setSelectedSeats] = useState<Seat[]>([])
-  const [orderData, setOrderData] = useState<any>(null)
+export function TicketConfirmation({ data, order }: { data: Record<string, string>, order: Order }) {
   const [showAnimation, setShowAnimation] = useState(false)
-  const [orderId] = useState(() => `DBB-${Date.now().toString(36).toUpperCase()}`)
+  const [isDownloading, setIsDownloading] = useState(false)
 
   useEffect(() => {
-    const storedSeats = sessionStorage.getItem("selectedSeats")
-    const storedOrder = sessionStorage.getItem("orderData")
-
-    if (storedSeats) {
-      setSelectedSeats(JSON.parse(storedSeats))
-    }
-    if (storedOrder) {
-      setOrderData(JSON.parse(storedOrder))
-    }
-
-    // Trigger animation
-    setTimeout(() => setShowAnimation(true), 100)
+    setShowAnimation(true)
   }, [])
 
-  const getTotal = () => {
-    const subtotal = selectedSeats.reduce((sum, seat) => sum + seat.price, 0)
-    const serviceFee = selectedSeats.length * 5
-    return subtotal + serviceFee
-  }
+  const handleDownload = async (orderNo: string) => {
+    setIsDownloading(true)
 
-  const getZoneDisplay = (zone: string) => {
-    const zoneMap: Record<string, string> = {
-      red: "Red Zone",
-      yellow: "Yellow Zone (VIP)",
-      black: "Black Zone",
-      green: "Green Zone",
-      blue: "Blue Zone (Reserved)",
-      purple: "Purple Zone (Reserved)",
+    try {
+      const result = await downloadTicket(orderNo)
+
+      if (!result.success || !result.data) {
+        throw new Error(result.error || "Failed to download ticket")
+      }
+
+      // Convert base64 to blob
+      const byteCharacters = atob(result.data)
+      const byteNumbers = new Array(byteCharacters.length)
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i)
+      }
+      const byteArray = new Uint8Array(byteNumbers)
+      const blob = new Blob([byteArray], { type: result.contentType || 'application/pdf' })
+
+      // Create download link
+      const url = window.URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = result.filename || `Tickets-${orderNo}.pdf`
+      document.body.appendChild(link)
+      link.click()
+
+      // Cleanup
+      document.body.removeChild(link)
+      window.URL.revokeObjectURL(url)
+    } catch (error) {
+      console.error('Download failed:', error)
+      alert('Failed to download ticket. Please try again.')
+    } finally {
+      setIsDownloading(false)
     }
-    return zoneMap[zone] || zone
   }
 
   return (
@@ -72,8 +73,7 @@ export function TicketConfirmation({ paymentStatus }: { paymentStatus: Record<st
             className="text-5xl md:text-7xl font-bold uppercase mb-4 neon-text"
             style={{ fontFamily: "var(--font-anton)" }}
           >
-            Ticket {paymentStatus.payment_status}!
-
+            Ticket {data.payment_status}!
           </h1>
           <p className="text-xl text-muted-grey">Your tickets have been successfully booked</p>
         </div>
@@ -87,9 +87,8 @@ export function TicketConfirmation({ paymentStatus }: { paymentStatus: Record<st
           {/* Ticket Header */}
           <div className="bg-gradient-to-r from-neon-magenta via-electric-purple to-electric-blue p-6">
             <h2 className="text-3xl font-bold text-white uppercase" style={{ fontFamily: "var(--font-anton)" }}>
-              Dream Beyond Borders - 2ofus LIVE
+                2ofus - Dream Beyond Borders
             </h2>
-            <p className="text-white/90 text-lg mt-1">Live Concert Experience 2025</p>
           </div>
 
           <div className="p-8 space-y-6">
@@ -126,7 +125,7 @@ export function TicketConfirmation({ paymentStatus }: { paymentStatus: Record<st
               {/* QR Code */}
               <div className="flex flex-col items-center justify-center bg-background rounded-lg p-6">
                 <QRCodeSVG
-                  value={`https://dreambeyondborders.com/ticket/${orderId}`}
+                  value={`https://dreambeyondborders.com/ticket/${order.id}`}
                   size={180}
                   level="H"
                   includeMargin
@@ -143,17 +142,20 @@ export function TicketConfirmation({ paymentStatus }: { paymentStatus: Record<st
                 <h3 className="text-xl font-bold text-white uppercase" style={{ fontFamily: "var(--font-anton)" }}>
                   Order Details
                 </h3>
-                <span className="text-muted-grey text-sm">Order #{orderId}</span>
+                <span className="text-muted-grey text-sm">Order #{order.order_no}</span>
               </div>
 
               <div className="space-y-3 mb-4">
-                {selectedSeats.map((seat) => (
-                  <div key={seat.id} className="flex justify-between items-center bg-background rounded p-3">
+                {order.tickets && order.tickets.map((ticket) => (
+                  <div key={ticket.id} className="flex justify-between items-center bg-background rounded p-3">
                     <div>
-                      <p className="text-white font-bold">Seat {seat.id}</p>
-                      <p className="text-muted-grey text-sm">{getZoneDisplay(seat.zone)}</p>
+                      <p className="text-white font-bold">
+                        Seat {ticket.seat!.seat_no} - Section {ticket.seat!.section}
+                      </p>
+                      <p className="text-muted-grey text-sm">{ticket.seat!.category.category}</p>
+                      <p className="text-muted-grey text-xs mt-1">Ticket: {ticket.ticket_no}</p>
                     </div>
-                    <p className="text-neon-magenta font-bold">MYR {seat.price}</p>
+                    <p className="text-neon-magenta font-bold">MYR {ticket.seat!.category.price}</p>
                   </div>
                 ))}
               </div>
@@ -161,13 +163,13 @@ export function TicketConfirmation({ paymentStatus }: { paymentStatus: Record<st
               <div className="border-t border-electric-purple/30 pt-4">
                 <div className="flex justify-between text-white text-xl font-bold">
                   <span>Total Paid</span>
-                  <span className="text-neon-magenta">MYR {getTotal()}</span>
+                  <span className="text-neon-magenta">MYR {Number(order.total_price)}</span>
                 </div>
               </div>
             </div>
 
             {/* Customer Info */}
-            {orderData && (
+            {order && (
               <div className="border-t border-electric-purple/30 pt-6">
                 <h3 className="text-xl font-bold text-white uppercase mb-4" style={{ fontFamily: "var(--font-anton)" }}>
                   Ticket Holder
@@ -175,11 +177,11 @@ export function TicketConfirmation({ paymentStatus }: { paymentStatus: Record<st
                 <div className="grid md:grid-cols-2 gap-4 text-sm">
                   <div>
                     <p className="text-muted-grey uppercase tracking-wider mb-1">Name</p>
-                    <p className="text-white font-medium">{orderData.fullName}</p>
+                    <p className="text-white font-medium">{order.customer_name}</p>
                   </div>
                   <div>
                     <p className="text-muted-grey uppercase tracking-wider mb-1">Email</p>
-                    <p className="text-white font-medium">{orderData.email}</p>
+                    <p className="text-white font-medium">{order.customer_email}</p>
                   </div>
                 </div>
               </div>
@@ -193,11 +195,29 @@ export function TicketConfirmation({ paymentStatus }: { paymentStatus: Record<st
             showAnimation ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
           }`}
         >
-          <Button className="flex-1 bg-neon-magenta hover:bg-hot-pink text-white font-bold py-6 rounded-lg neon-glow transition-all duration-300 hover:scale-105 uppercase tracking-wide gap-2">
-            <Download className="w-5 h-5" />
-            Download Ticket
-          </Button>
           <Button
+            onClick={() => handleDownload(order.order_no)}
+            disabled={isDownloading}
+            className="flex-1 bg-neon-magenta hover:bg-hot-pink text-white font-bold py-6 rounded-lg neon-glow transition-all duration-300 hover:scale-105 uppercase tracking-wide gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+          >
+            {isDownloading ? (
+              <>
+                <Download className="w-5 h-5 animate-pulse" />
+                Downloading...
+              </>
+            ) : (
+              <>
+                <Download className="w-5 h-5" />
+                Download Ticket
+              </>
+            )}
+          </Button>
+
+          <Button
+            onClick={() => {
+              // Implement email functionality
+              console.log('Email ticket to:', order.customer_email)
+            }}
             variant="outline"
             className="flex-1 border-2 border-electric-blue text-electric-blue hover:bg-electric-blue hover:text-background font-bold py-6 rounded-lg transition-all duration-300 hover:scale-105 uppercase tracking-wide gap-2 bg-transparent"
           >
@@ -213,7 +233,7 @@ export function TicketConfirmation({ paymentStatus }: { paymentStatus: Record<st
             <li>• Please arrive at least 30 minutes before the show starts</li>
             <li>• Bring a valid ID matching the ticket holder name</li>
             <li>• Your QR code will be scanned at the entrance</li>
-            <li>• A confirmation email has been sent to {orderData?.email}</li>
+            <li>• A confirmation email has been sent to {order.customer_email}</li>
           </ul>
         </Card>
 

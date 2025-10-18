@@ -1,13 +1,13 @@
 "use server"
 
-import { SeatData } from "@/types/seats";
+import { Seat } from "@/types/seats";
 
 const API_URL = process.env.API_URL!;
 
 export async function verifyPayment( transactionId: string )
 {
     try {
-        const response = await fetch(`${API_URL}/payments/verify`, {
+        const response = await fetch(`${API_URL}/api/payments/verify`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -28,7 +28,7 @@ export async function verifyPayment( transactionId: string )
     }
 }
 
-export async function createOrder(formData: FormData, seats: SeatData[]) {
+export async function createOrder(formData: FormData, seats: Seat[]) {
     const seatIds = seats.map((seat) => seat.id)
 
     const payload = {
@@ -39,7 +39,7 @@ export async function createOrder(formData: FormData, seats: SeatData[]) {
       }
 
     try {
-        const response = await fetch(`http://127.0.0.1:8000/api/create-order`, {
+        const response = await fetch(`${API_URL}/api/create-order`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

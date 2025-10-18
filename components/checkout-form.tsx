@@ -8,10 +8,10 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { Loader2 } from "lucide-react"
-import { SeatData } from "@/types/seats"
+import { Seat } from "@/types/seats"
 import { createOrder } from "@/lib/payment"
 
-export function CheckoutForm({ seats }: { seats: SeatData[] }) {
+export function CheckoutForm({ seats }: { seats: Seat[] }) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [accepted, setAccepted] = useState(false)

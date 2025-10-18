@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { CheckCircle2 } from "lucide-react"
-import { SeatRowLayout, SeatData } from "@/types/seats"
+import { SeatRowLayout, Seat } from "@/types/seats"
 import { useRouter } from "next/navigation"
 
 type VenueSeatingProps = {
@@ -21,7 +21,7 @@ const zoneColors: Record<string, { border: string; hover: string; selected: stri
 // -------- VenueSeating Component --------
 const VenueSeating = ({ seats }: VenueSeatingProps) => {
     const router = useRouter()
-    const [selectedSeats, setSelectedSeats] = useState<SeatData[]>([])
+    const [selectedSeats, setSelectedSeats] = useState<Seat[]>([])
 
     const handleBookNow = () => {
         const seatsData = selectedSeats.map(seat => ({
@@ -36,7 +36,7 @@ const VenueSeating = ({ seats }: VenueSeatingProps) => {
         router.push(`/checkout?seats=${query}`)
     }
 
-    const toggleSeat = (seat: SeatData) => {
+    const toggleSeat = (seat: Seat) => {
     setSelectedSeats((prev) => {
         const exists = prev.find((s) => s.seatRowNumber === seat.seatRowNumber)
         if (exists) return prev.filter((s) => s.seatRowNumber !== seat.seatRowNumber)
@@ -46,7 +46,7 @@ const VenueSeating = ({ seats }: VenueSeatingProps) => {
 
     const clearSelection = () => setSelectedSeats([])
 
-    const Seat = ({ row, seat }: { row: string; seat: SeatData }) => {
+    const Seat = ({ row, seat }: { row: string; seat: Seat }) => {
     const isSelected = selectedSeats.some((s) => s.seatRowNumber === seat.seatRowNumber)
 
     // Seat status flags

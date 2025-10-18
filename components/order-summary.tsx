@@ -9,9 +9,9 @@ import { Clock, X } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { SeatData } from "@/types/seats"
+import { Seat } from "@/types/seats"
 
-export function OrderSummary({ seats }: { seats: SeatData[] }) {
+export function OrderSummary({ seats }: { seats: Seat[] }) {
   const router = useRouter()
   const [timeLeft, setTimeLeft] = useState(600)
 
